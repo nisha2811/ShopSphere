@@ -1,12 +1,27 @@
-**/target/
-**/node_modules/
+# Environment
 .env
-*.log
+.env.*
+!.env.example
+
+# Java
+**/target/
+
+# Node
+**/node_modules/
+**/dist/
+**/build/
+
+# IDE
 .idea/
 .vscode/
 *.iml
-.DS_Store
 
-**/dist/
-**/build/
-**/coverage/
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml

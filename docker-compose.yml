@@ -1,0 +1,78 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: shopsphere-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - shopsphere-network
+
+  backend:
+    build: ./backend
+    container_name: shopsphere-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS}
+      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS}
+      FRONTEND_URL: ${FRONTEND_URL}
+      COOKIE_SECURE: ${COOKIE_SECURE}
+      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE}
+      MAIL_ENABLED: ${MAIL_ENABLED}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      SEED_DATA_ENABLED: ${SEED_DATA_ENABLED}
+      SEED_DEMO_USERS: ${SEED_DEMO_USERS}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_CUSTOMER_EMAIL: ${SEED_CUSTOMER_EMAIL}
+      SEED_CUSTOMER_PASSWORD: ${SEED_CUSTOMER_PASSWORD}
+      OPENAPI_ENABLED: ${OPENAPI_ENABLED}
+    expose:
+      - "8088"
+    networks:
+      - shopsphere-network
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    container_name: shopsphere-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - shopsphere-network
+
+volumes:
+  pgdata:
+  shopsphere_uploads:
+
+networks:
+  shopsphere-network:
+    driver: bridge
