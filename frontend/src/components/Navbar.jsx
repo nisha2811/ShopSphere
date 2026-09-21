@@ -29,10 +29,20 @@ export default function Navbar({ dark, setDark })
         closeMobileMenu();
         navigate(admin ? '/admin' : '/profile');
     };
-    const logout = () => {
-        clearAuth();
-        closeMobileMenu();
-        navigate('/');
+//     const logout = () => {
+//         clearAuth();
+//         closeMobileMenu();
+//         navigate('/');
+//     };
+    const logout = async () => {
+        try {
+            await api.post('/auth/logout');
+        } catch (error) {
+            console.error('Logout request failed:', error);
+        } finally {
+            clearAuth();
+            navigate('/');
+        }
     };
 
     return (
